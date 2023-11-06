@@ -1,2 +1,189 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+import psutil
+
+#-------------------------------------------------------CPU-----------------------------------------------------------------
+
+cpu_info = psutil.cpu_times(percpu=False)
+print("User", cpu_info.user)
+print("system", cpu_info.system)
+print("idle", cpu_info.idle)
+print("interrupt", cpu_info.interrupt)
+print("dpc", cpu_info.dpc)
+
+cpu_info2 = psutil. cpu_percent ( interval = 0.1 , percpu = True )
+print("Porcentaje de uso de la cpu",cpu_info2)
+for per in cpu_info2:
+    print("Porcentaje de uso de la CPU:", per)
+
+# Me imagino que obtiene los valores de user, system, idle, interrupt, dcp por cada nucleo de cpu
+cpu_info3 = psutil. cpu_times_percent ( interval = 0.1 , percpu = True )
+print("Muestra los resultados de cpu_times por cada nucleo del cpu ",cpu_info3)
+
+# Muestra la cantidad de nucleos del cpu
+cpu_info4 = psutil.cpu_count(logical=True)
+print("Cantidad de nucleos del cpu =",cpu_info4)
+
+# Muestra la cantidad de nucleos utilizables en el sistema
+cpu_info5 = psutil.cpu_count(len(psutil.Process().cpu_affinity()))
+print("Cantidad de nucleos utilizables en el sistema =",cpu_info5)
+
+# Muestra la frecuencia del cpu en el momento de la llamada
+cpu_info6 = psutil. cpu_freq ( percpu = True )
+print("Frecuencia actual del CPU",cpu_info6)
+# Bucle for permite imprimir por separado el tipo de resultado
+for freq in cpu_info6:
+    print("curtrent:", freq.current)
+    print("min:", freq.min)
+    print("max:", freq.max)
+
+# Devuelve el promedio del sistema durante los ultimos 1,5 y 15 minutos, la carga representa los procesos en ejecucion y los que estan en espera
+cpu_info7 = psutil.getloadavg()
+print("Carga en el cpu entre 1,5 y 15 min",cpu_info7)
+
+# Devuelve los valores de cpu_info7 en porcentaje
+cpu_info8 = [x / psutil.cpu_count() * 100 for x in psutil.getloadavg()]
+print(cpu_info8)
+
+#-------------------------------------------------------------Memoria RAM----------------------------------------------------------
+
+# Muestra el estado de la memoria ram
+mem = psutil.virtual_memory()
+print("El estado actual de la memoria es:",mem)
+print("Memoria total:",mem.total)
+print("Memoria disponible:",mem.available)
+print("Porcentaje de uso calculado como (total-available / total * 100):",mem.percent)
+print("Memoria utilizada:",mem.used)
+print("Memoria sin uso absoluto:",mem.free)
+
+# En la condicional se establece que si la memoria disponible(available) es menor a 100MB se imprima advertencia(warning)
+# Y se multiplica 1024 dos veces para convertir megabytes en bytes 
+THRESHOLD = 100 * 1024 * 1024  # 100MB
+if mem.available <= THRESHOLD:
+    print("warning")
+
+# Memoria de intercambio
+mem2 = psutil.swap_memory()
+print(mem2)
+print("Memoria total:",mem2.total)
+print("Memoria utilizada:",mem2.used)
+print("Memoria sin uso absoluto:",mem2.free)
+print("Porcentaje de memoria:",mem2.percent)
+print("El número de bytes que el sistema ha intercambiado desde el disco (acumulado):",mem2.sin)
+print("La cantidad de bytes que el sistema ha intercambiado del disco (acumulativos:",mem2.sout)
+
+#-------------------------------------------------------------------------------DISCO-------------------------------------------------------
+
+#
+disco1 = psutil.disk_partitions()
+print(disco1)
+for disk in disco1:
+    print("device:",disk.device)
+    print("mountpoint:",disk.mountpoint)
+    print("fstype:",disk.fstype)
+    print("opts:",disk.opts)
+    print("maxfile:",disk.maxfile)
+    print("maxpath:",disk.maxpath)
+
+#
+disco2 = psutil.disk_usage('/')
+print(disco2)
+print("Total de la capacidad de la unidad:",disco2.total)
+print("Espacio utilizado de la unidad:",disco2.used)
+print("Espacio no utilizado en absoluto:",disco2.free)
+print("Porcentaje de uso de la unidad:",disco2.percent)
+
+
+disco3 = psutil.disk_io_counters()
+print(disco3)
+print("Conteo de lectura(milisegundos):",disco3.read_count)
+print("Conteo de escritura (milisegundos):",disco3.write_count)
+print("Lectura de bytes (milisegundos):",disco3.read_bytes)
+print("Escritura de bytes (milisegundos):",disco3.write_bytes)
+print("Tiempo de lectura (milisegundos):",disco3.read_time)
+print("Tiempo de escritura (milisegundos):",disco3.write_time)
+
+#-------------------------------------------------------------------------------------Red---------------------------------------------
+
+red1 = psutil.net_io_counters(pernic=True)
+#print(red1)
+for interfaz, datos in red1.items():
+    print(f"Interfaz: {interfaz}")
+    print(f"Datos: {datos}")
+    print("--------------------")
+    
+
+red2 = psutil.net_connections()
+#print(red2)
+for conexion in red2:
+    print(f"Conexión: {conexion}")
+    print("--------------------")
+    
+
+red3 = psutil.net_if_addrs()
+#print(red3)
+for ethernet in red3:
+    print(f"ethernet: {ethernet}")
+    print("--------------------")
+    
+red4 = psutil.net_if_stats()
+#print(red4)
+for dispositivo, datos in red1.items():
+    print(f"Dispositivo: {dispositivo}")
+    print(f"Datos: {datos}")
+    print("--------------------")
+
+#----------------------------------------------------------------------Otra información del sistema------------------------------------
+
+# Tiempo de arranque del sistema
+inf1 = psutil.boot_time()
+print("Tiempo de inicio:",inf1 / 100000000, "Seg")
+
+import datetime
+inf2 = datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H:%M:%S")
+print("Fecha:",inf2)
+
+# Lista de usuarios
+usuario1 = psutil.users()
+print(usuario1)
+
+#-----------------------------------------------------------Funciones------------------------------------------
+
+# Lista de procesos en ejecucion
+fun1 = psutil.pids()
+print(fun1)
+for f in fun1:
+    print("PID =",f)
+
+# Lista de procesos en ejecucion con nombre y usuario
+procs = {p.pid: p.info for p in psutil.process_iter(['name', 'username'])}
+for pid, info in procs.items():
+    print(f"PID: {pid}, Info: {info}")
+    print()  # Salto de línea
+
+# Busca un proceso en especifico entregando como resultado True o False
+fun2 = psutil.pid_exists(4)
+print(fun2)
+
+"""
+# Funcion que se utiliza para finalizar procesos y espera a todos sus hijos
+def on_terminate(proc):
+    print("process {} terminated with exit code {}".format(proc, proc.returncode))
+
+procs = psutil.Process().children()
+for p in procs:
+    p.terminate()
+gone, alive = psutil.wait_procs(procs, timeout=3, callback=on_terminate)
+for p in alive:
+    p.kill()
+
+on_terminate()
+
+"""
+
+
+
+
+
+
+
+
+    
